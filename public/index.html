@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./layui/css/layui.css">
+    <style>
+        .box {
+            width: 700px;
+            margin: 20px auto;
+        }
+        .box li {
+            margin: 5px;
+        }
+        .box li span {
+            float: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <h2>新闻资讯</h2>
+        <hr>
+        <ul id="mylist">
+
+        </ul>
+        <script type="text/html" id="temp1">
+            {% for item in result %}
+            <li>{{ loop.index }} - {{ item.title }} <span> ——{{ item.time }}</span></li>
+            {% endfor %}
+        </script>
+        <hr>
+        <div id="test1"></div>
+
+    </div>
+    <script src="./layui/layui.all.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/nunjucks/3.0.1/nunjucks.min.js"></script>
+
+    <script>
+        layui.use('laypage', function () {
+            var laypage = layui.laypage;
+            var $ = layui.jquery;
+            //执行一个laypage实例
+            laypage.render({
+                elem: 'test1' //注意，这里的 test1 是 ID，不用加 # 号
+                    ,
+                count: 100 //数据总数，从服务端得到
+                    ,
+                limit: 10,
+                groups: 3,
+                curr: 1,
+                layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip'],
+                jump: function (obj, first) {
+                    // console.log(obj)
+
+                    $.ajax({
+                        type: "get",
+                        url: "/news",
+                        data: {
+                            curr: obj.curr,
+                            limit: obj.limit
+                        },
+                        dataType: "json",
+                        success: function (result) {
+                            // console.log(result);
+                            let env = nunjucks.configure({
+                                autoescape: true
+                            });
+                            let res = env.renderString($('#temp1').html(), {
+                                result
+                            });
+                            $('#mylist').html(res)
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
